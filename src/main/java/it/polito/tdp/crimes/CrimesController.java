@@ -5,8 +5,11 @@
 package it.polito.tdp.crimes;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.crimes.model.Coppia;
 import it.polito.tdp.crimes.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -25,16 +28,16 @@ public class CrimesController {
     private URL location;
 
     @FXML // fx:id="boxCategoria"
-    private ComboBox<?> boxCategoria; // Value injected by FXMLLoader
+    private ComboBox<String> boxCategoria; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxAnno"
-    private ComboBox<?> boxAnno; // Value injected by FXMLLoader
+    private ComboBox<Integer> boxAnno; // Value injected by FXMLLoader
 
     @FXML // fx:id="btnAnalisi"
     private Button btnAnalisi; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxArco"
-    private ComboBox<?> boxArco; // Value injected by FXMLLoader
+    private ComboBox<Coppia> boxArco; // Value injected by FXMLLoader
 
     @FXML // fx:id="btnPercorso"
     private Button btnPercorso; // Value injected by FXMLLoader
@@ -45,13 +48,34 @@ public class CrimesController {
     @FXML
     void doCreaGrafo(ActionEvent event) {
     	txtResult.clear();
-    	txtResult.appendText("Crea grafo...\n");
+    	if (this.boxCategoria.getValue()==null || this.boxAnno.getValue() == null) {
+    		this.txtResult.setText("Devi selezionare dei valori a sinistra!");
+    		return;
+    	}
+    	this.model.setGrafo(this.boxCategoria.getValue(), this.boxAnno.getValue());
+    	List<Coppia> cTemp = new ArrayList<>(this.model.getCoppiePesoMasismo());
+    	if (cTemp.size() == 0) {
+    		this.txtResult.setText("Non esistono archi corrispondenti ai requisiti");
+    	}else {
+    	this.txtResult.setText("Archi che soddisfano i requisiti:\n");
+    		for (Coppia c : cTemp)
+    		this.txtResult.appendText(c.toString()+"\n");
+    	}
+    	this.boxArco.getItems().addAll(this.model.getAllCoppie());
     }
 
     @FXML
     void doCalcolaPercorso(ActionEvent event) {
     	txtResult.clear();
-    	txtResult.appendText("Calcola percorso...\n");
+    	if (this.boxArco.getValue()== null){
+    		this.txtResult.setText("Devi prima creare il grafo e selezionare un arco!");
+    		return;
+    	}else {
+    		
+    		Coppia arcoSelezionato = this.boxArco.getValue();
+    		for (String s :this.model.calcolaPercorso(arcoSelezionato))
+    			this.txtResult.appendText(s+"\n");
+    	}
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -67,5 +91,7 @@ public class CrimesController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	this.boxCategoria.getItems().addAll(this.model.getAllCategories());
+    	this.boxAnno.getItems().addAll(this.model.getAllYeart());
     }
 }
